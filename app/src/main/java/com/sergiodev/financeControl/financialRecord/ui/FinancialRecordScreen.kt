@@ -1,5 +1,6 @@
 package com.sergiodev.financeControl.financialRecord.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -62,6 +63,8 @@ import com.sergiodev.financeControl.ui.theme.BackApp
 import com.sergiodev.financeControl.ui.theme.Green40
 import com.sergiodev.financeControl.ui.theme.Grey40
 import com.sergiodev.financeControl.ui.theme.WhiteApp
+import dev.souravdas.materialsegmentedbutton.SegmentedButton
+import dev.souravdas.materialsegmentedbutton.SegmentedButtonItem
 import java.util.Date
 
 
@@ -69,7 +72,7 @@ import java.util.Date
 fun FinancialRecordScreen() {
 
     var isShowModalAdd by rememberSaveable { mutableStateOf(false) }
-    
+
     Scaffold(
         floatingActionButton = {
             FABFinancialRecordScreen {
@@ -219,10 +222,16 @@ fun FooterFinancialRecordItem(item: FinancialRecordModel) {
 fun AddModalBottomSheet(isShow: Boolean, onAddModalBottomSheetDismiss: () -> Unit, onAddModalBottomSheetAdd: () -> Unit) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+    var transactionType: TransactionType by rememberSaveable { mutableStateOf(TransactionType.DEBIT) }
     var isShowDatePicker by rememberSaveable { mutableStateOf(false) }
     var edtDate: String by rememberSaveable { mutableStateOf("") }
     var edtAmount: String by rememberSaveable { mutableStateOf("") }
     var edtDescription: String by rememberSaveable { mutableStateOf("") }
+
+    val segmentedItems = listOf(
+        SegmentedButtonItem(leadingIcon = {}, title = { Text("Debito") }, onClick = { transactionType = TransactionType.DEBIT }),
+        SegmentedButtonItem(leadingIcon = {}, title = { Text("Credito") }, onClick = { transactionType = TransactionType.CREDIT })
+    )
 
     if (isShow) {
         ModalBottomSheet(onDismissRequest = {
@@ -239,7 +248,16 @@ fun AddModalBottomSheet(isShow: Boolean, onAddModalBottomSheetDismiss: () -> Uni
                     fontSize = 16.sp,
                     modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
                 )
+
                 HorizontalDivider(thickness = 0.5.dp)
+
+                SegmentedButton(
+
+                    items = segmentedItems,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                )
 
                 OutlinedTextField(
                     edtDate,
@@ -260,7 +278,7 @@ fun AddModalBottomSheet(isShow: Boolean, onAddModalBottomSheetDismiss: () -> Uni
                     readOnly = true,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 16.dp)
+                        .padding(top = 4.dp)
                         .noRippleClickable {
                             isShowDatePicker = !isShowDatePicker
                         }
@@ -293,6 +311,12 @@ fun AddModalBottomSheet(isShow: Boolean, onAddModalBottomSheetDismiss: () -> Uni
 
                 Button(
                     onClick = {
+
+                        transactionType = TransactionType.DEBIT
+                        edtDate = ""
+                        edtAmount = ""
+                        edtDescription = ""
+                        
                         onAddModalBottomSheetAdd()
                     }, modifier = Modifier
                         .fillMaxWidth()
