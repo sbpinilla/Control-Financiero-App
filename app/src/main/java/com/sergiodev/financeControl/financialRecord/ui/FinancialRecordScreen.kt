@@ -2,6 +2,7 @@ package com.sergiodev.financeControl.financialRecord.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +24,7 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
@@ -51,6 +53,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sergiodev.financeControl.R
@@ -58,6 +61,7 @@ import com.sergiodev.financeControl.core.enums.TransactionType
 import com.sergiodev.financeControl.core.extension.noRippleClickable
 import com.sergiodev.financeControl.core.extension.toFormattedString
 import com.sergiodev.financeControl.core.extension.toMoneyFormat
+import com.sergiodev.financeControl.financialRecord.ui.model.CheckKeysModel
 import com.sergiodev.financeControl.financialRecord.ui.model.FinancialRecordModel
 import com.sergiodev.financeControl.ui.theme.BackApp
 import com.sergiodev.financeControl.ui.theme.Green40
@@ -73,13 +77,11 @@ fun FinancialRecordScreen() {
 
     var isShowModalAdd by rememberSaveable { mutableStateOf(false) }
 
-    Scaffold(
-        floatingActionButton = {
-            FABFinancialRecordScreen {
-                isShowModalAdd = !isShowModalAdd
-            }
-        },
-        topBar = { TopBarFinancialRecordScreen() }
+    Scaffold(floatingActionButton = {
+        FABFinancialRecordScreen {
+            isShowModalAdd = !isShowModalAdd
+        }
+    }, topBar = { TopBarFinancialRecordScreen() }
 
     ) { paddingValues ->
 
@@ -89,14 +91,11 @@ fun FinancialRecordScreen() {
                 .padding(paddingValues)
         ) {
             FinancialRecordList()
-            AddModalBottomSheet(
-                isShow = isShowModalAdd,
-                onAddModalBottomSheetDismiss = {
-                    isShowModalAdd = !isShowModalAdd
-                },
-                onAddModalBottomSheetAdd = {
-                    isShowModalAdd = !isShowModalAdd
-                })
+            AddModalBottomSheet(isShow = isShowModalAdd, onAddModalBottomSheetDismiss = {
+                isShowModalAdd = !isShowModalAdd
+            }, onAddModalBottomSheetAdd = {
+                isShowModalAdd = !isShowModalAdd
+            })
 
         }
 
@@ -112,7 +111,6 @@ fun TopBarFinancialRecordScreen() {
         Text(text = stringResource(R.string.financial_record_screen_title))
     }, colors = TopAppBarDefaults.topAppBarColors(containerColor = Green40, titleContentColor = WhiteApp))
 }
-
 
 @Composable
 fun FABFinancialRecordScreen(onFABClick: () -> Unit) {
@@ -137,8 +135,7 @@ fun FinancialRecordList() {
         itemsIndexed(financialRecordList) { index, financialRecord ->
 
             FinancialRecordItem(item = financialRecord)
-            if (index < financialRecordList.lastIndex)
-                HorizontalDivider(color = Grey40, thickness = 0.5.dp)
+            if (index < financialRecordList.lastIndex) HorizontalDivider(color = Grey40, thickness = 0.5.dp)
         }
     }
 }
@@ -163,19 +160,16 @@ fun HeaderFinancialRecordItem(item: FinancialRecordModel) {
 
     Row(modifier = Modifier.fillMaxWidth()) {
         Text(
-            item.date.toFormattedString(),
-            modifier = Modifier
+            item.date.toFormattedString(), modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .weight(1f),
 
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp,
-            color = BackApp
+            fontWeight = FontWeight.Bold, fontSize = 16.sp, color = BackApp
         )
 
         Text(
-            item.amount.toMoneyFormat(item.nature), modifier = Modifier
-                .padding(horizontal = 18.dp),
+            item.amount.toMoneyFormat(item.nature),
+            modifier = Modifier.padding(horizontal = 18.dp),
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
             color = if (item.nature == TransactionType.DEBIT) Green40 else Color.Red
@@ -188,11 +182,7 @@ fun HeaderFinancialRecordItem(item: FinancialRecordModel) {
 fun BodyFinancialRecordItem(item: FinancialRecordModel) {
 
     Text(
-        item.description, modifier = Modifier
-            .padding(horizontal = 16.dp),
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        color = BackApp
+        item.description, modifier = Modifier.padding(horizontal = 16.dp), fontWeight = FontWeight.Normal, fontSize = 16.sp, color = BackApp
 
     )
 
@@ -206,11 +196,7 @@ fun FooterFinancialRecordItem(item: FinancialRecordModel) {
             Spacer(modifier = Modifier.size(16.dp))
         }
         items(item.keys) { key ->
-            AssistChip(
-                label = { Text(key) },
-                colors = AssistChipDefaults.assistChipColors(containerColor = Grey40, labelColor = WhiteApp),
-                onClick = {},
-                modifier = Modifier.padding(end = 8.dp)
+            AssistChip(label = { Text(key) }, colors = AssistChipDefaults.assistChipColors(containerColor = Grey40, labelColor = WhiteApp), onClick = {}, modifier = Modifier.padding(end = 8.dp)
             )
         }
 
@@ -229,9 +215,11 @@ fun AddModalBottomSheet(isShow: Boolean, onAddModalBottomSheetDismiss: () -> Uni
     var edtDescription: String by rememberSaveable { mutableStateOf("") }
 
     val segmentedItems = listOf(
-        SegmentedButtonItem(leadingIcon = {}, title = { Text("Debito") }, onClick = { transactionType = TransactionType.DEBIT }),
-        SegmentedButtonItem(leadingIcon = {}, title = { Text("Credito") }, onClick = { transactionType = TransactionType.CREDIT })
+        SegmentedButtonItem(leadingIcon = {}, title = { Text(stringResource(R.string.financial_record_screen_txt_credit)) }, onClick = { transactionType = TransactionType.CREDIT }),
+        SegmentedButtonItem(leadingIcon = {}, title = { Text(stringResource(R.string.financial_record_screen_txt_debit)) }, onClick = { transactionType = TransactionType.DEBIT })
     )
+
+    var checkItems: List<CheckKeysModel> by rememberSaveable { mutableStateOf(CheckKeysModel.generateCheckKeysList()) }
 
     if (isShow) {
         ModalBottomSheet(onDismissRequest = {
@@ -243,46 +231,34 @@ fun AddModalBottomSheet(isShow: Boolean, onAddModalBottomSheetDismiss: () -> Uni
                     .padding(horizontal = 16.dp)
             ) {
                 Text(
-                    stringResource(R.string.financial_record_screen_txt_add_movement),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                    stringResource(R.string.financial_record_screen_txt_add_movement), fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
                 )
 
                 HorizontalDivider(thickness = 0.5.dp)
 
                 SegmentedButton(
 
-                    items = segmentedItems,
-                    modifier = Modifier
+                    items = segmentedItems, modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp)
                 )
 
-                OutlinedTextField(
-                    edtDate,
-                    label = { Text(stringResource(R.string.financial_record_screen_edt_date)) },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                        disabledBorderColor = MaterialTheme.colorScheme.outline,
-                        disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        //For Icons
-                        disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    ),
+                OutlinedTextField(edtDate, label = { Text(stringResource(R.string.financial_record_screen_edt_date)) }, colors = OutlinedTextFieldDefaults.colors(
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledBorderColor = MaterialTheme.colorScheme.outline,
+                    disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    //For Icons
+                    disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
 
-                    onValueChange = { edtDate = it },
-                    enabled = false,
-                    maxLines = 1,
-                    readOnly = true,
-                    modifier = Modifier
+                    onValueChange = { edtDate = it }, enabled = false, maxLines = 1, readOnly = true, modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 4.dp)
                         .noRippleClickable {
                             isShowDatePicker = !isShowDatePicker
-                        }
-                )
+                        })
 
                 OutlinedTextField(
                     edtAmount,
@@ -309,6 +285,19 @@ fun AddModalBottomSheet(isShow: Boolean, onAddModalBottomSheetDismiss: () -> Uni
                         .padding(top = 16.dp)
                 )
 
+                CheckKeysAddModalBottomSheet(items = checkItems, onCheckedItem = { checkItem ->
+
+                    checkItems = checkItems.map { item ->
+
+                        if (item.name == checkItem.name)
+                            item.copy(isCheck = !checkItem.isCheck)
+                        else
+                            item
+
+                    }
+
+                })
+
                 Button(
                     onClick = {
 
@@ -316,9 +305,10 @@ fun AddModalBottomSheet(isShow: Boolean, onAddModalBottomSheetDismiss: () -> Uni
                         edtDate = ""
                         edtAmount = ""
                         edtDescription = ""
-                        
+
                         onAddModalBottomSheetAdd()
-                    }, modifier = Modifier
+                    }, enabled = edtDate.isNotEmpty() && edtAmount.isNotEmpty() && edtDescription.isNotEmpty() && checkItems.count { x -> x.isCheck } >= 1,
+                    modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp)
                 ) {
@@ -332,14 +322,13 @@ fun AddModalBottomSheet(isShow: Boolean, onAddModalBottomSheetDismiss: () -> Uni
 
         }
 
-        AppDatePickerDialog(isShowDatePicker,
-            onAppDatePickerDismiss = {
-                isShowDatePicker = false
+        AppDatePickerDialog(isShowDatePicker, onAppDatePickerDismiss = {
+            isShowDatePicker = false
 
-            }, onAppDatePickerConfirm = {
-                isShowDatePicker = false
-                edtDate = it.toFormattedString()
-            })
+        }, onAppDatePickerConfirm = {
+            isShowDatePicker = false
+            edtDate = it.toFormattedString()
+        })
     }
 
 }
@@ -352,31 +341,112 @@ fun AppDatePickerDialog(showDialog: Boolean, onAppDatePickerDismiss: () -> Unit,
 
         val dateState = rememberDatePickerState()
 
-        DatePickerDialog(
-            onDismissRequest = { onAppDatePickerDismiss() },
-            confirmButton = {
-                Button(
-                    onClick = {
+        DatePickerDialog(onDismissRequest = { onAppDatePickerDismiss() }, confirmButton = {
+            Button(onClick = {
 
-                        dateState.selectedDateMillis?.let { Date(it) }?.let { onAppDatePickerConfirm(it) }
-                    }
-                ) {
-                    Text(text = "OK")
-                }
-            },
-            dismissButton = {
-                Button(
-                    onClick = { onAppDatePickerDismiss() }
-                ) {
-                    Text(text = "Cancel")
-                }
+                dateState.selectedDateMillis?.let { Date(it) }?.let { onAppDatePickerConfirm(it) }
+            }) {
+                Text(text = "OK")
             }
-        ) {
+        }, dismissButton = {
+            Button(onClick = { onAppDatePickerDismiss() }) {
+                Text(text = "Cancel")
+            }
+        }) {
             DatePicker(
-                state = dateState,
-                showModeToggle = true
+                state = dateState, showModeToggle = true
             )
         }
     }
+
+}
+
+@Composable
+fun CheckKeysAddModalBottomSheet(items: List<CheckKeysModel>, onCheckedItem: (CheckKeysModel) -> Unit) {
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+
+        for (i in items.indices step 3) {
+
+            val firstElement = items[i]
+            val secondElement = if (i + 1 < items.size) items[i + 1] else null
+            val thirdElement = if (i + 1 < items.size) items[i + 2] else null
+
+            AppCheckBoxTwoItem(
+                item = firstElement,
+                nexItem = secondElement,
+                nexItem2 = thirdElement,
+                onCheckedKey = {
+                    onCheckedItem(it)
+                })
+
+        }
+    }
+
+
+}
+
+@Composable
+fun AppCheckBoxTwoItem(item: CheckKeysModel, nexItem: CheckKeysModel?, nexItem2: CheckKeysModel?, onCheckedKey: (CheckKeysModel) -> Unit) {
+
+    Row {
+
+        Box(modifier = Modifier.weight(1f)) {
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Checkbox(
+                    checked = item.isCheck,
+                    onCheckedChange = {
+                        onCheckedKey(item)
+                    },
+                )
+                Text(
+                    item.name, modifier = Modifier
+                        .weight(1f)
+                        .padding(top = 12.dp)
+                )
+
+            }
+        }
+        Box(modifier = Modifier.weight(1f)) {
+
+            if (nexItem != null) {
+
+                Row(modifier = Modifier.fillMaxWidth()) {
+
+                    Checkbox(checked = nexItem.isCheck, onCheckedChange = {
+                        onCheckedKey(nexItem)
+                    })
+                    Text(
+                        nexItem.name, modifier = Modifier
+                            .weight(1f)
+                            .padding(top = 12.dp)
+                    )
+                }
+            }
+
+        }
+
+        Box(modifier = Modifier.weight(1f)) {
+
+            if (nexItem2 != null) {
+
+                Row(modifier = Modifier.fillMaxWidth()) {
+
+                    Checkbox(checked = nexItem2.isCheck, onCheckedChange = {
+                        onCheckedKey(nexItem2)
+                    })
+                    Text(
+                        nexItem2.name, modifier = Modifier
+                            .weight(1f)
+                            .padding(top = 12.dp)
+                    )
+                }
+            }
+
+        }
+
+
+    }
+
 
 }

@@ -10,5 +10,8 @@
     <string name="financial_record_screen_edt_amount">Monto</string>
     <string name="financial_record_screen_edt_description">Descripción</string>
 
+    <string name="financial_record_screen_txt_debit">Débito</string>
+    <string name="financial_record_screen_txt_credit">Crédito</string>
+
 
 </resources>
