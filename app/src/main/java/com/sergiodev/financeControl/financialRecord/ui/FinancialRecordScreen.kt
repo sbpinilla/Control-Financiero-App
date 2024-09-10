@@ -1,33 +1,30 @@
 package com.sergiodev.financeControl.financialRecord.ui
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -38,8 +35,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
@@ -47,18 +42,21 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sergiodev.financeControl.R
 import com.sergiodev.financeControl.core.enums.TransactionType
+import com.sergiodev.financeControl.core.extension.formatWithThousandsSeparator
 import com.sergiodev.financeControl.core.extension.noRippleClickable
+import com.sergiodev.financeControl.core.extension.removeThousandsSeparator
 import com.sergiodev.financeControl.core.extension.toFormattedString
 import com.sergiodev.financeControl.core.extension.toMoneyFormat
 import com.sergiodev.financeControl.financialRecord.ui.model.CheckKeysModel
@@ -73,9 +71,10 @@ import java.util.Date
 
 
 @Composable
-fun FinancialRecordScreen() {
+fun FinancialRecordScreen(financialRecordViewModel: FinancialRecordViewModel) {
 
     var isShowModalAdd by rememberSaveable { mutableStateOf(false) }
+    val listFinancialRecords: List<FinancialRecordModel> = financialRecordViewModel.financialRecords
 
     Scaffold(floatingActionButton = {
         FABFinancialRecordScreen {
@@ -90,11 +89,16 @@ fun FinancialRecordScreen() {
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            FinancialRecordList()
+            if (listFinancialRecords.isEmpty())
+                FinancialRecordListEmpty()
+            else
+                FinancialRecordList(listFinancialRecords = listFinancialRecords)
+
             AddModalBottomSheet(isShow = isShowModalAdd, onAddModalBottomSheetDismiss = {
                 isShowModalAdd = !isShowModalAdd
             }, onAddModalBottomSheetAdd = {
                 isShowModalAdd = !isShowModalAdd
+                financialRecordViewModel.onFinancialRecordAdd(it)
             })
 
         }
@@ -115,29 +119,40 @@ fun TopBarFinancialRecordScreen() {
 @Composable
 fun FABFinancialRecordScreen(onFABClick: () -> Unit) {
 
-    FloatingActionButton(onClick = {
-        onFABClick()
-    }, containerColor = Grey40) {
+    FloatingActionButton(
+        onClick = {
+            onFABClick()
+        }, containerColor = Grey40, contentColor = WhiteApp
+    ) {
         Icon(imageVector = Icons.Default.Add, contentDescription = stringResource(R.string.financial_record_screen_title))
     }
 }
 
 @Composable
-fun FinancialRecordList() {
-
-    val financialRecordList: List<FinancialRecordModel> = listOf(
-        FinancialRecordModel(description = "Pago nomina mes de agosto", nature = TransactionType.DEBIT, amount = 4000000.0, keys = listOf("Nomina"), date = Date()),
-        FinancialRecordModel(description = "Almuerzo 08/02/2024 con familia", nature = TransactionType.CREDIT, amount = 200000.0, keys = listOf("Casa", "Comida"), date = Date())
-    )
+fun FinancialRecordList(listFinancialRecords: List<FinancialRecordModel>) {
 
     LazyColumn {
 
-        itemsIndexed(financialRecordList) { index, financialRecord ->
+        itemsIndexed(listFinancialRecords) { index, financialRecord ->
 
             FinancialRecordItem(item = financialRecord)
-            if (index < financialRecordList.lastIndex) HorizontalDivider(color = Grey40, thickness = 0.5.dp)
+            if (index < listFinancialRecords.lastIndex) HorizontalDivider(color = Grey40, thickness = 0.5.dp)
         }
     }
+}
+
+@Composable
+fun FinancialRecordListEmpty() {
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(R.drawable.sincontenido),
+            contentDescription = "",
+            modifier = Modifier.align(Alignment.Center)
+        )
+
+    }
+
 }
 
 @Composable
@@ -205,13 +220,16 @@ fun FooterFinancialRecordItem(item: FinancialRecordModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddModalBottomSheet(isShow: Boolean, onAddModalBottomSheetDismiss: () -> Unit, onAddModalBottomSheetAdd: () -> Unit) {
+fun AddModalBottomSheet(isShow: Boolean, onAddModalBottomSheetDismiss: () -> Unit, onAddModalBottomSheetAdd: (FinancialRecordModel) -> Unit) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    var transactionType: TransactionType by rememberSaveable { mutableStateOf(TransactionType.DEBIT) }
+    var transactionType: TransactionType by rememberSaveable { mutableStateOf(TransactionType.CREDIT) }
     var isShowDatePicker by rememberSaveable { mutableStateOf(false) }
     var edtDate: String by rememberSaveable { mutableStateOf("") }
+    var dateFinancialRecord: Date by rememberSaveable { mutableStateOf(Date()) }
     var edtAmount: String by rememberSaveable { mutableStateOf("") }
+
+
     var edtDescription: String by rememberSaveable { mutableStateOf("") }
 
     val segmentedItems = listOf(
@@ -261,7 +279,7 @@ fun AddModalBottomSheet(isShow: Boolean, onAddModalBottomSheetDismiss: () -> Uni
                         })
 
                 OutlinedTextField(
-                    edtAmount,
+                    edtAmount.formatWithThousandsSeparator(),
                     label = { Text(stringResource(R.string.financial_record_screen_edt_amount)) },
                     onValueChange = { edtAmount = it },
                     singleLine = true,
@@ -289,30 +307,35 @@ fun AddModalBottomSheet(isShow: Boolean, onAddModalBottomSheetDismiss: () -> Uni
 
                     checkItems = checkItems.map { item ->
 
-                        if (item.name == checkItem.name)
-                            item.copy(isCheck = !checkItem.isCheck)
-                        else
-                            item
+                        if (item.name == checkItem.name) item.copy(isCheck = !checkItem.isCheck)
+                        else item
 
                     }
 
                 })
 
-                Button(
-                    onClick = {
+                Button(onClick = {
 
-                        transactionType = TransactionType.DEBIT
-                        edtDate = ""
-                        edtAmount = ""
-                        edtDescription = ""
+                    onAddModalBottomSheetAdd(FinancialRecordModel(description = edtDescription,
+                        nature = transactionType,
+                        amount = edtAmount.removeThousandsSeparator().toDouble(),
+                        keys = checkItems.filter { x -> x.isCheck }.map { x -> x.name },
+                        date = dateFinancialRecord
+                    )
+                    )
 
-                        onAddModalBottomSheetAdd()
-                    }, enabled = edtDate.isNotEmpty() && edtAmount.isNotEmpty() && edtDescription.isNotEmpty() && checkItems.count { x -> x.isCheck } >= 1,
+                    transactionType = TransactionType.DEBIT
+                    edtDate = ""
+                    edtAmount = ""
+                    edtDescription = ""
+                    checkItems = CheckKeysModel.generateCheckKeysList()
+
+                },
+                    enabled = edtDate.isNotEmpty() && edtAmount.isNotEmpty() && edtDescription.isNotEmpty() && checkItems.count { x -> x.isCheck } >= 1,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 16.dp)
-                ) {
-                    Text("Agregar")
+                        .padding(top = 16.dp)) {
+                    Text(stringResource(R.string.financial_record_screen_btn_add))
                 }
 
                 Spacer(modifier = Modifier.height(100.dp))
@@ -327,6 +350,7 @@ fun AddModalBottomSheet(isShow: Boolean, onAddModalBottomSheetDismiss: () -> Uni
 
         }, onAppDatePickerConfirm = {
             isShowDatePicker = false
+            dateFinancialRecord = it
             edtDate = it.toFormattedString()
         })
     }
@@ -372,13 +396,9 @@ fun CheckKeysAddModalBottomSheet(items: List<CheckKeysModel>, onCheckedItem: (Ch
             val secondElement = if (i + 1 < items.size) items[i + 1] else null
             val thirdElement = if (i + 1 < items.size) items[i + 2] else null
 
-            AppCheckBoxTwoItem(
-                item = firstElement,
-                nexItem = secondElement,
-                nexItem2 = thirdElement,
-                onCheckedKey = {
-                    onCheckedItem(it)
-                })
+            AppCheckBoxTwoItem(item = firstElement, nexItem = secondElement, nexItem2 = thirdElement, onCheckedKey = {
+                onCheckedItem(it)
+            })
 
         }
     }
@@ -399,11 +419,12 @@ fun AppCheckBoxTwoItem(item: CheckKeysModel, nexItem: CheckKeysModel?, nexItem2:
                         onCheckedKey(item)
                     },
                 )
-                Text(
-                    item.name, modifier = Modifier
-                        .weight(1f)
-                        .padding(top = 12.dp)
-                )
+                Text(item.name, fontSize = 14.sp, modifier = Modifier
+                    .weight(1f)
+                    .padding(top = 12.dp)
+                    .clickable {
+                        onCheckedKey(item)
+                    })
 
             }
         }
@@ -416,11 +437,12 @@ fun AppCheckBoxTwoItem(item: CheckKeysModel, nexItem: CheckKeysModel?, nexItem2:
                     Checkbox(checked = nexItem.isCheck, onCheckedChange = {
                         onCheckedKey(nexItem)
                     })
-                    Text(
-                        nexItem.name, modifier = Modifier
-                            .weight(1f)
-                            .padding(top = 12.dp)
-                    )
+                    Text(nexItem.name, fontSize = 14.sp, modifier = Modifier
+                        .weight(1f)
+                        .padding(top = 12.dp)
+                        .clickable {
+                            onCheckedKey(nexItem)
+                        })
                 }
             }
 
@@ -435,11 +457,12 @@ fun AppCheckBoxTwoItem(item: CheckKeysModel, nexItem: CheckKeysModel?, nexItem2:
                     Checkbox(checked = nexItem2.isCheck, onCheckedChange = {
                         onCheckedKey(nexItem2)
                     })
-                    Text(
-                        nexItem2.name, modifier = Modifier
-                            .weight(1f)
-                            .padding(top = 12.dp)
-                    )
+                    Text(nexItem2.name, fontSize = 14.sp, modifier = Modifier
+                        .weight(1f)
+                        .padding(top = 12.dp)
+                        .clickable {
+                            onCheckedKey(nexItem2)
+                        })
                 }
             }
 

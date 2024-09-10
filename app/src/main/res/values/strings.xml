@@ -12,6 +12,7 @@
 
     <string name="financial_record_screen_txt_debit">Débito</string>
     <string name="financial_record_screen_txt_credit">Crédito</string>
+    <string name="financial_record_screen_btn_add">Agregar</string>
 
 
 </resources>
