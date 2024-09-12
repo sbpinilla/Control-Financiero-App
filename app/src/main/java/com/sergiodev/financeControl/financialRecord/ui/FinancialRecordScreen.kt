@@ -75,7 +75,7 @@ fun FinancialRecordScreen(financialRecordViewModel: FinancialRecordViewModel) {
 
     var isShowModalAdd by rememberSaveable { mutableStateOf(false) }
     val listFinancialRecords: List<FinancialRecordModel> = financialRecordViewModel.financialRecords
-
+    financialRecordViewModel.getFinancialRecord()
     Scaffold(floatingActionButton = {
         FABFinancialRecordScreen {
             isShowModalAdd = !isShowModalAdd
