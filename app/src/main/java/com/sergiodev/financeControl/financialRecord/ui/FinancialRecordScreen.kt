@@ -45,6 +45,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -52,6 +53,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.sergiodev.financeControl.R
 import com.sergiodev.financeControl.core.enums.TransactionType
 import com.sergiodev.financeControl.core.extension.formatWithThousandsSeparator
@@ -74,8 +77,24 @@ import java.util.Date
 fun FinancialRecordScreen(financialRecordViewModel: FinancialRecordViewModel) {
 
     var isShowModalAdd by rememberSaveable { mutableStateOf(false) }
-    val listFinancialRecords: List<FinancialRecordModel> = financialRecordViewModel.financialRecords
-    financialRecordViewModel.getFinancialRecord()
+    //val listFinancialRecords: List<FinancialRecordModel> = financialRecordViewModel.financialRecords
+    //financialRecordViewModel.getFinancialRecord()
+
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+
+    val uiState by produceState<FinancialRecordUIState>(
+        initialValue = FinancialRecordUIState.Loading,
+        key1 = lifecycle,
+        key2 = financialRecordViewModel.uiState
+
+    ) {
+        lifecycle.repeatOnLifecycle(state = Lifecycle.State.STARTED) {
+            financialRecordViewModel.uiState.collect {
+                value = it
+            }
+        }
+    }
+
     Scaffold(floatingActionButton = {
         FABFinancialRecordScreen {
             isShowModalAdd = !isShowModalAdd
@@ -89,17 +108,28 @@ fun FinancialRecordScreen(financialRecordViewModel: FinancialRecordViewModel) {
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            if (listFinancialRecords.isEmpty())
-                FinancialRecordListEmpty()
-            else
-                FinancialRecordList(listFinancialRecords = listFinancialRecords)
 
-            AddModalBottomSheet(isShow = isShowModalAdd, onAddModalBottomSheetDismiss = {
-                isShowModalAdd = !isShowModalAdd
-            }, onAddModalBottomSheetAdd = {
-                isShowModalAdd = !isShowModalAdd
-                financialRecordViewModel.onFinancialRecordAdd(it)
-            })
+            when (uiState){
+                is FinancialRecordUIState.Loading -> {}
+                is FinancialRecordUIState.Error -> {}
+                is FinancialRecordUIState.Success -> {
+
+                    val financialRecords =  (uiState as FinancialRecordUIState.Success).list
+
+                    if (financialRecords.isEmpty())
+                        FinancialRecordListEmpty()
+                    else
+                        FinancialRecordList(listFinancialRecords = financialRecords)
+
+                    AddModalBottomSheet(isShow = isShowModalAdd, onAddModalBottomSheetDismiss = {
+                        isShowModalAdd = !isShowModalAdd
+                    }, onAddModalBottomSheetAdd = {
+                        isShowModalAdd = !isShowModalAdd
+                        financialRecordViewModel.onFinancialRecordAdd(it)
+                    })
+
+                }
+            }
 
         }
 

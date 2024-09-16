@@ -10,13 +10,13 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface FinancialRecordDao {
 
-    @Query("Select * from FinancialRecordEntity")
+    @Query("Select * from FinancialRecordEntity order by date desc")
     fun getFinancialRecord(): Flow<List<FinancialRecordEntity>>
 
-    @Query("Select * from FinancialRecordEntity")
+    @Query("Select * from FinancialRecordEntity order by date desc")
     fun getFinancialRecordRelation(): Flow<List<FinancialRecordKeyRelation>>
 
-    @Query("Select * from FinancialRecordEntity")
+    @Query("Select * from FinancialRecordEntity order by date desc")
     suspend fun getTemFinancialRecordRelation(): List<FinancialRecordKeyRelation>
 
     @Insert

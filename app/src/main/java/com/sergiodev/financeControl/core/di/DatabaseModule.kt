@@ -24,7 +24,7 @@ class DatabaseModule {
 
     @Provides
     fun provideFinancialRecordKeyDao(financialRecordDatabase: FinancialRecordDatabase): FinancialRecordKeyDao {
-        return financialRecordDatabase.FinancialRecordKeyDao()
+        return financialRecordDatabase.financialRecordKeyDao()
     }
 
     @Provides

@@ -15,5 +15,5 @@ import com.sergiodev.financeControl.core.database.utils.ConvertHelper
 abstract class FinancialRecordDatabase : RoomDatabase() {
 
     abstract fun financialRecordDao(): FinancialRecordDao
-    abstract fun FinancialRecordKeyDao(): FinancialRecordKeyDao
+    abstract fun financialRecordKeyDao(): FinancialRecordKeyDao
 }
