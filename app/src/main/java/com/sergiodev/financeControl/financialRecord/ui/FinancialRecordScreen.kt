@@ -1,6 +1,7 @@
 package com.sergiodev.financeControl.financialRecord.ui
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,8 +20,13 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoGraph
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Checklist
+import androidx.compose.material.icons.filled.RequestPage
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
@@ -29,6 +35,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -56,6 +63,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.sergiodev.financeControl.R
+import com.sergiodev.financeControl.core.enums.BottomBarType
 import com.sergiodev.financeControl.core.enums.TransactionType
 import com.sergiodev.financeControl.core.extension.formatWithThousandsSeparator
 import com.sergiodev.financeControl.core.extension.noRippleClickable
@@ -83,9 +91,7 @@ fun FinancialRecordScreen(financialRecordViewModel: FinancialRecordViewModel) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
 
     val uiState by produceState<FinancialRecordUIState>(
-        initialValue = FinancialRecordUIState.Loading,
-        key1 = lifecycle,
-        key2 = financialRecordViewModel.uiState
+        initialValue = FinancialRecordUIState.Loading, key1 = lifecycle, key2 = financialRecordViewModel.uiState
 
     ) {
         lifecycle.repeatOnLifecycle(state = Lifecycle.State.STARTED) {
@@ -95,11 +101,21 @@ fun FinancialRecordScreen(financialRecordViewModel: FinancialRecordViewModel) {
         }
     }
 
-    Scaffold(floatingActionButton = {
-        FABFinancialRecordScreen {
-            isShowModalAdd = !isShowModalAdd
+    var bottomBarType by rememberSaveable { mutableStateOf(BottomBarType.LIST) }
+
+
+    Scaffold(
+        floatingActionButton = {
+            if (bottomBarType == BottomBarType.LIST) {
+                FABFinancialRecordScreen {
+                    isShowModalAdd = !isShowModalAdd
+                }
+            }
+        },
+        topBar = { TopBarFinancialRecordScreen() },
+        bottomBar = {
+            BottomNavigationBar(currentPage = bottomBarType, onItemClick = { bottomBarType = it })
         }
-    }, topBar = { TopBarFinancialRecordScreen() }
 
     ) { paddingValues ->
 
@@ -109,27 +125,35 @@ fun FinancialRecordScreen(financialRecordViewModel: FinancialRecordViewModel) {
                 .padding(paddingValues)
         ) {
 
-            when (uiState){
-                is FinancialRecordUIState.Loading -> {}
-                is FinancialRecordUIState.Error -> {}
-                is FinancialRecordUIState.Success -> {
+            when (bottomBarType) {
+                BottomBarType.LIST -> {
 
-                    val financialRecords =  (uiState as FinancialRecordUIState.Success).list
+                    when (uiState) {
+                        is FinancialRecordUIState.Loading -> {}
+                        is FinancialRecordUIState.Error -> {}
+                        is FinancialRecordUIState.Success -> {
 
-                    if (financialRecords.isEmpty())
-                        FinancialRecordListEmpty()
-                    else
-                        FinancialRecordList(listFinancialRecords = financialRecords)
+                            val financialRecords = (uiState as FinancialRecordUIState.Success).list
 
-                    AddModalBottomSheet(isShow = isShowModalAdd, onAddModalBottomSheetDismiss = {
-                        isShowModalAdd = !isShowModalAdd
-                    }, onAddModalBottomSheetAdd = {
-                        isShowModalAdd = !isShowModalAdd
-                        financialRecordViewModel.onFinancialRecordAdd(it)
-                    })
+                            if (financialRecords.isEmpty()) FinancialRecordListEmpty()
+                            else FinancialRecordList(listFinancialRecords = financialRecords)
+
+                            AddModalBottomSheet(isShow = isShowModalAdd, onAddModalBottomSheetDismiss = {
+                                isShowModalAdd = !isShowModalAdd
+                            }, onAddModalBottomSheetAdd = {
+                                isShowModalAdd = !isShowModalAdd
+                                financialRecordViewModel.onFinancialRecordAdd(it)
+                            })
+
+                        }
+                    }
 
                 }
+
+                BottomBarType.CONSOLIDATED -> {}
+                BottomBarType.GRAPHIC -> {}
             }
+
 
         }
 
@@ -144,6 +168,27 @@ fun TopBarFinancialRecordScreen() {
     TopAppBar(title = {
         Text(text = stringResource(R.string.financial_record_screen_title))
     }, colors = TopAppBarDefaults.topAppBarColors(containerColor = Green40, titleContentColor = WhiteApp))
+}
+
+
+@Composable
+fun BottomNavigationBar(currentPage: BottomBarType, onItemClick: (BottomBarType) -> Unit) {
+
+    BottomAppBar(actions = {
+
+        IconButton(onClick = { onItemClick(BottomBarType.LIST) }, modifier = Modifier.weight(1f)) {
+            Icon(Icons.Filled.Checklist, "", tint = if (currentPage == BottomBarType.LIST) Green40 else Grey40)
+        }
+
+        IconButton(onClick = { onItemClick(BottomBarType.CONSOLIDATED) }, modifier = Modifier.weight(1f)) {
+            Icon(Icons.Filled.RequestPage, "", tint = if (currentPage == BottomBarType.CONSOLIDATED) Green40 else Grey40)
+        }
+
+        IconButton(onClick = { onItemClick(BottomBarType.GRAPHIC) }, modifier = Modifier.weight(1f)) {
+            Icon(Icons.Filled.AutoGraph, "", tint = if (currentPage == BottomBarType.GRAPHIC) Green40 else Grey40)
+        }
+    }, containerColor = Color(0xFFC2C2C2))
+
 }
 
 @Composable
@@ -176,9 +221,7 @@ fun FinancialRecordListEmpty() {
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(R.drawable.sincontenido),
-            contentDescription = "",
-            modifier = Modifier.align(Alignment.Center)
+            painter = painterResource(R.drawable.sincontenido), contentDescription = "", modifier = Modifier.align(Alignment.Center)
         )
 
     }
