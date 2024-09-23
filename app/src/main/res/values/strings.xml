@@ -15,4 +15,8 @@
     <string name="financial_record_screen_btn_add">Agregar</string>
 
 
+    <string name="financial_record_consolidated_screen_txt_debit">Ingresos</string>
+    <string name="financial_record_consolidated_screen_txt_credit">Egresos</string>
+    <string name="financial_record_consolidated_screen_txt_total">Total</string>
+
 </resources>

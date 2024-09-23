@@ -72,6 +72,7 @@ import com.sergiodev.financeControl.core.extension.toFormattedString
 import com.sergiodev.financeControl.core.extension.toMoneyFormat
 import com.sergiodev.financeControl.financialRecord.ui.model.CheckKeysModel
 import com.sergiodev.financeControl.financialRecord.ui.model.FinancialRecordModel
+import com.sergiodev.financeControl.financialRecordConsolidated.ui.FinancialRecordConsolidatedScreen
 import com.sergiodev.financeControl.ui.theme.BackApp
 import com.sergiodev.financeControl.ui.theme.Green40
 import com.sergiodev.financeControl.ui.theme.Grey40
@@ -150,7 +151,11 @@ fun FinancialRecordScreen(financialRecordViewModel: FinancialRecordViewModel) {
 
                 }
 
-                BottomBarType.CONSOLIDATED -> {}
+                BottomBarType.CONSOLIDATED -> {
+                    val financialRecords = (uiState as FinancialRecordUIState.Success).list
+                    FinancialRecordConsolidatedScreen(financialRecords)
+                }
+
                 BottomBarType.GRAPHIC -> {}
             }
 
